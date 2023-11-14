@@ -245,7 +245,18 @@ public:
                        return interval_nodes(i) | take(n_take);
                      });
 
-    return join(std::move(all_views));
+    static std::vector<double> nodes_join; // hack to get around clang16 join, view to static data is now a vector please let this func be single threaded, with a single instance of mpc
+    nodes_join.clear();
+
+    for(const auto &view : all_views)
+    {
+        for(const auto &datum : view)
+        {
+            nodes_join.push_back(datum);
+        }
+    }
+
+    return std::views::all(nodes_join);
   }
 
   /**
@@ -293,7 +304,18 @@ public:
                        return interval_weights(i) | take(n_take);
                      });
 
-    return join(std::move(all_views));
+    static std::vector<double> weights_join; // hack to get around clang16 join, view to static data is now a vector please let this func be single threaded, with a single instance of mpc
+    weights_join.clear();
+
+    for(const auto &view : all_views)
+    {
+        for(const auto &datum : view)
+        {
+            weights_join.push_back(datum);
+        }
+    }
+
+    return std::views::all(weights_join);
   }
 
   /**
