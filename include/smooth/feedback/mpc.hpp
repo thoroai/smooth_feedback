@@ -522,7 +522,12 @@ public:
   /**
    * @brief Set the desired input trajectory (absolute time)
    */
-  inline void set_udes(std::function<U(T)> && u_des) { udes_->udes = std::move(u_des); }
+  inline void set_udes(std::function<U(T)> && u_des) {
+      udes_->udes = std::move(u_des);
+
+      // on udes change, update running constraints
+      ocp_to_qp_update_cr<diff::Type::Analytic>(qp_, work_, ocp_, mesh_, prm_.tf, *xdes_, *udes_);
+  }
 
   /**
    * @brief Set the desired input trajectory (absolute time, rvalue version)
@@ -552,6 +557,9 @@ public:
   {
     xdes_->xdes  = std::move(x_des);
     xdes_->dxdes = std::move(dx_des);
+
+    // if xdes changes update running constraints
+    ocp_to_qp_update_cr<diff::Type::Analytic>(qp_, work_, ocp_, mesh_, prm_.tf, *xdes_, *udes_);
   }
 
   /**
