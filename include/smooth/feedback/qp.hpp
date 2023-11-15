@@ -80,15 +80,15 @@ struct QuadraticProgramSparse
 
 /// @brief Solver exit codes
 enum class QPSolutionStatus {
-  Optimal,           /// @brief Solution satisifes optimality condition. Solution is polished if
+  Optimal=1,           /// @brief Solution satisifes optimality condition. Solution is polished if
                      /// `QPSolverParams::polish = true`.
-  PolishFailed,      /// @brief Solution satisfies optimality condition but is not polished
-  PrimalInfeasible,  /// @brief A certificate of primal infeasibility was found, no solution
+  PolishFailed=2,      /// @brief Solution satisfies optimality condition but is not polished
+  PrimalInfeasible=3,  /// @brief A certificate of primal infeasibility was found, no solution
                      /// returned
-  DualInfeasible,    /// @brief A certificate of dual infeasibility was found, no solution returned
-  MaxIterations,     /// @brief Max number of iterations was reached, returned solution is not optimal
-  MaxTime,           /// @brief Max time was reached, returned solution is not optimal
-  Unknown            /// @brief Solution is useless because of other reasons, no solution returned
+  DualInfeasible=4,    /// @brief A certificate of dual infeasibility was found, no solution returned
+  MaxIterations=5,     /// @brief Max number of iterations was reached, returned solution is not optimal
+  MaxTime=6,           /// @brief Max time was reached, returned solution is not optimal
+  Unknown=0            /// @brief Solution is useless because of other reasons, no solution returned
 };
 
 /// Solver solution
