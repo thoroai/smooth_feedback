@@ -12,6 +12,13 @@
 #include "time.hpp"
 #include "utils/sparse.hpp"
 
+// Forward declare for a friend debug class
+namespace crl {
+  namespace knight {
+    class MPCDebug;
+  }
+}
+
 namespace smooth::feedback {
 
 namespace detail {
@@ -379,6 +386,9 @@ template<
   diff::Type DT     = diff::Type::Default>
 class MPC
 {
+
+  friend class crl::knight::MPCDebug;
+
   static constexpr auto Ncr = std::invoke_result_t<CR, X, U>::SizeAtCompileTime;
 
 public:
