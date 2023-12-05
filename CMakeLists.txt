@@ -16,12 +16,12 @@ find_package(smooth REQUIRED)
 # TARGETS
 # ---------------------------------------------------------------------------------------
 
-add_library(feedback INTERFACE)
+add_library(smooth_feedback INTERFACE)
 target_include_directories(
-  feedback INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  smooth_feedback INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                      $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(feedback INTERFACE Boost::headers smooth::smooth)
+target_link_libraries(smooth_feedback INTERFACE Boost::headers smooth::smooth)
 
 # ---------------------------------------------------------------------------------------
 # INSTALLATION
@@ -36,7 +36,7 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/smooth
 
 # Targets
 install(
-  TARGETS feedback
+  TARGETS smooth_feedback
   EXPORT ${PROJECT_NAME}_targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
