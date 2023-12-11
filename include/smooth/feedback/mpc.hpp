@@ -331,7 +331,7 @@ struct MPCParams
   /**
    * @brief Enable warmstarting
    */
-  bool warmstart{true};
+  bool warmstart{true}; // NOTE: In cases where MPC object is not persistent, warmstart_ is set directly from an external scope, resulting in this param having no effect.
 
   /**
    * @brief QP solvers parameters.
@@ -622,6 +622,11 @@ public:
    */
   inline void reset_warmstart() { warmstart_ = {}; }
 
+  /**
+   * @brief Set initial guess for next iteration from an external source. NOTE: This function should be removed once mpc object is made persistent externally.
+   */
+  inline void set_warmstart_solution(const QPSolution<-1, -1, double>& sol) { warmstart_ = sol; }
+
 private:
   // linearization
   std::shared_ptr<detail::XDes<T, X>> xdes_;
@@ -650,18 +655,6 @@ private:
 
   // internal QP solver
   QPSolver<QuadraticProgramSparse<double>> qp_solver_;
-
-public:
-
-  // static int lifetime_;
-  // // explicit static int lifetime_;
-  int lifetime_ = 0;
-
-  // void increase() {lifetime_ += 1;}
-
-  // // int get() {return lifetime_;}
-  // int print() {std::cout << "LIFETIME: " << lifetime_ << std::endl;}
-
 
   // last solution stored for warmstarting
   std::optional<QPSolution<-1, -1, double>> warmstart_{};
