@@ -429,7 +429,6 @@ public:
         },
         prm_{std::move(prm)}, qp_solver_{prm_.qp}
   {
-    std::cout << ">> MPC constructed <<" << std::endl;
     detail::ocp_to_qp_allocate<DT>(qp_, work_, ocp_, mesh_);
     ocp_to_qp_update<diff::Type::Analytic>(qp_, work_, ocp_, mesh_, prm_.tf, *xdes_, *udes_);
     qp_solver_.analyze(qp_);
@@ -500,11 +499,6 @@ public:
     qp_.P.makeCompressed();
 
     // solve QP
-    // if(warmstart_)
-    if(warmstart_.has_value())
-      std::cout << "mpc warmstart [yes]" << std::endl;
-    else
-      std::cout << "mpc warmstart [no]" << std::endl;
     const auto & sol = qp_solver_.solve(qp_, warmstart_);
 
     // output solution trajectories
@@ -525,16 +519,11 @@ public:
 
     // save solution to warmstart next iteration
     if (prm_.warmstart) {
-      std::cout << "mpc warmstart after solve [yes]" << std::endl;
       // clang-format off
       if (sol.code == QPSolutionStatus::Optimal || sol.code == QPSolutionStatus::MaxTime || sol.code == QPSolutionStatus::MaxIterations) {
         warmstart_ = sol;
       }
       // clang-format on
-    }
-    else
-    {
-      std::cout << "mpc warmstart after solve [no]" << std::endl;
     }
 
     return {rplus((*udes_)(0), sol.primal.template segment<Nu>(uvar_B)), sol.code};

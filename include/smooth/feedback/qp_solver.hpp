@@ -341,16 +341,8 @@ public:
    * @brief Solve quadratic program.
    */
   const QPSolution<M, N, Scalar> &
-  // solve(const Pbm & pbm, std::optional<std::reference_wrapper<const QPSolution<M, N, Scalar>>> warmstart = {})
-  solve(const Pbm & pbm, std::optional<const QPSolution<M, N, Scalar>> warmstart = {})
+  solve(const Pbm & pbm, std::optional<std::reference_wrapper<const QPSolution<M, N, Scalar>>> warmstart = {})
   {
-
-    // if(warmstart)
-    if(warmstart.has_value())
-      std::cout << "inside qp warmstart [yes]" << std::endl;
-    else
-      std::cout << "inside qp warmstart [no]" << std::endl;
-
     // update problem scaling
     if (prm_.scaling) { scale(pbm); }
 
@@ -443,14 +435,9 @@ public:
     // initialize solver variables
     if (warmstart.has_value()) {
       // warmstart variables must be scaled
-      /*
       sol_.primal  = sx_.cwiseInverse().cwiseProduct(warmstart.value().get().primal);
       sol_.dual    = c_ * sy_.cwiseInverse().cwiseProduct(warmstart.value().get().dual);
       z_.noalias() = sy_.asDiagonal() * pbm.A * warmstart.value().get().primal;
-      */
-      sol_.primal  = sx_.cwiseInverse().cwiseProduct(warmstart.value().primal);
-      sol_.dual    = c_ * sy_.cwiseInverse().cwiseProduct(warmstart.value().dual);
-      z_.noalias() = sy_.asDiagonal() * pbm.A * warmstart.value().primal;      
     } else {
       sol_.primal.setZero();
       sol_.dual.setZero();
@@ -793,16 +780,8 @@ template<typename Pbm>
 detail::qp_solution_t<Pbm> solve_qp(
   const Pbm & pbm,
   const QPSolverParams & prm,
-  // std::optional<std::reference_wrapper<const detail::qp_solution_t<Pbm>>> warmstart = {})
-  std::optional<const detail::qp_solution_t<Pbm>> warmstart = {})
+  std::optional<std::reference_wrapper<const detail::qp_solution_t<Pbm>>> warmstart = {})
 {
-
-  // if(warmstart)
-  //   std::cout << "@@@@@@@@@@@@@@" << std::endl;
-  // else
-  //   std::cout << "!!!!!!!!!!!!!" << std::endl;
-
-
   QPSolver solver(pbm, prm);
   return solver.solve(pbm, warmstart);
 }
