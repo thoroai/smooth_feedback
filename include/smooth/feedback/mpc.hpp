@@ -334,6 +334,11 @@ struct MPCParams
   bool warmstart{true};
 
   /**
+   * @brief Threshold value under which warmstart solution is saved
+  */
+  double warmstart_threshold{0.1};
+
+  /**
    * @brief QP solvers parameters.
    */
   QPSolverParams qp{};
@@ -518,7 +523,7 @@ public:
     }
 
     // save solution to warmstart next iteration
-    if (prm_.warmstart) {
+    if (prm_.warmstart and sol.objective < prm_.warmstart_threshold) {
       // clang-format off
       if (sol.code == QPSolutionStatus::Optimal || sol.code == QPSolutionStatus::MaxTime || sol.code == QPSolutionStatus::MaxIterations) {
         warmstart_ = sol;
