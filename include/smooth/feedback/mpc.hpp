@@ -331,7 +331,7 @@ struct MPCParams
   /**
    * @brief Enable warmstarting
    */
-  bool warmstart{true}; // NOTE: In cases where MPC object is not persistent, warmstart_ is set directly from an external scope, resulting in this param having no effect.
+  bool warmstart{true};
 
   /**
    * @brief Threshold value under which warmstart solution is saved
@@ -615,11 +615,6 @@ public:
    * @brief Reset initial guess for next iteration to zero.
    */
   inline void reset_warmstart() { warmstart_ = {}; }
-
-  /**
-   * @brief Set initial guess for next iteration from an external source. NOTE: This function should be removed once mpc object is made persistent externally.
-   */
-  inline void set_warmstart_solution(const QPSolution<-1, -1, double>& sol) { warmstart_ = sol; }
 
 private:
   // linearization
