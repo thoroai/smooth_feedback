@@ -10,7 +10,6 @@ option(BUILD_TESTS "Build tests." OFF)
 
 find_package(Boost REQUIRED)
 find_package(PkgConfig REQUIRED)
-find_package(smooth REQUIRED)
 
 # ---------------------------------------------------------------------------------------
 # TARGETS
@@ -21,7 +20,7 @@ target_include_directories(
   smooth_feedback INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                      $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(smooth_feedback INTERFACE Boost::headers smooth::smooth)
+target_link_libraries(smooth_feedback INTERFACE Boost::headers smooth)
 
 # ---------------------------------------------------------------------------------------
 # INSTALLATION
