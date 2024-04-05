@@ -352,7 +352,7 @@ public:
     [[maybe_unused]] auto Px_max = (pbm.P * x_us_).template lpNorm<Eigen::Infinity>();
     [[maybe_unused]] auto q_max = (pbm.q).template lpNorm<Eigen::Infinity>();
 
-    auto updated_rho = std::sqrt((primal_residual_max / std::max(Ax_max,z_max)) / (dual_residual_max / std::max(Px_max, q_max)))/2.;
+    auto updated_rho = std::sqrt((primal_residual_max / std::max(Ax_max,z_max)) / (dual_residual_max / std::max(Px_max, q_max)));
     if(std::isnan(updated_rho))
         return;
     const Scalar rho_bar    = static_cast<Scalar>(prm_.rho);
