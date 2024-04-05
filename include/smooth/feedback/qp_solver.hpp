@@ -338,6 +338,46 @@ public:
   }
 
   /**
+   * @brief set rho based on stuff
+   * see section 5.2 page 14 of the original paper, I found an archive pdf here:
+   * https://arxiv.org/pdf/1711.08013.pdf
+   */
+  void update_rho(const Pbm & pbm)
+  {
+    [[maybe_unused]] auto primal_residual_max = (pbm.A * x_us_ - z_us_).template lpNorm<Eigen::Infinity>();
+    [[maybe_unused]] auto Ax_max = (pbm.A * x_us_).template lpNorm<Eigen::Infinity>();
+    [[maybe_unused]] auto z_max = (z_us_).template lpNorm<Eigen::Infinity>();
+
+    [[maybe_unused]] auto dual_residual_max = (pbm.P * x_us_ + pbm.q + pbm.A.transpose() * y_us_).template lpNorm<Eigen::Infinity>();
+    [[maybe_unused]] auto Px_max = (pbm.P * x_us_).template lpNorm<Eigen::Infinity>();
+    [[maybe_unused]] auto q_max = (pbm.q).template lpNorm<Eigen::Infinity>();
+
+    auto updated_rho = std::sqrt((primal_residual_max / std::max(Ax_max,z_max)) / (dual_residual_max / std::max(Px_max, q_max)))/2.;
+    if(std::isnan(updated_rho))
+        return;
+    const Scalar rho_bar    = static_cast<Scalar>(prm_.rho);
+    updated_rho = std::clamp(updated_rho, rho_bar, 1e2*rho_bar);
+    if(updated_rho > rho_bar * 0.5 and updated_rho < rho_bar * 2.)
+        return;
+    prm_.rho = updated_rho;
+
+    //std::cout << "updated rho: " << updated_rho << std::endl;
+
+    const Eigen::Index m = pbm.A.rows();
+
+    for (auto i = 0u; i != m; ++i) {
+      // set rho depending on constraint type
+      if (pbm.l(i) == -inf && pbm.u(i) == inf) {
+        rho_(i) = Scalar(1e-6);  // unbounded
+      } else if (sy_(i) * std::fabs(pbm.l(i) - pbm.u(i)) < 1e-5) {
+        rho_(i) = Scalar(1e3) * rho_bar;  // equality
+      } else {
+        rho_(i) = updated_rho;  // inequality
+      }
+    }
+  }
+
+  /**
    * @brief Solve quadratic program.
    */
   const QPSolution<M, N, Scalar> &
@@ -463,8 +503,10 @@ public:
       }
 
       if (iter % prm_.stop_check_iter == 1) {
+        update_rho(pbm);
         // termination checking requires difference, store old scaled values
         dx_us_ = sol_.primal, dy_us_ = sol_.dual;
+
       }
 
       sol_.primal = alpha * p_.template segment<N>(0, n) + alpha_comp * sol_.primal;
@@ -506,7 +548,9 @@ public:
             ret_code = QPSolutionStatus::MaxTime;
           }
         }
+
       }
+
     }
 
     const auto t_iter = std::chrono::high_resolution_clock::now();
@@ -583,15 +627,21 @@ protected:
     // check primal
     Ax_.noalias()        = pbm.A * x_us_;
     const Scalar Ax_norm = norm(Ax_);
+    //static std::optional<Scalar> Ax_norm_old;
     Ax_ -= z_us_;
-    if (norm(Ax_) <= prm_.eps_abs + prm_.eps_rel * std::max<Scalar>(Ax_norm, norm(z_us_))) {
+    //std::cout << "primal check, norm(Ax_): " << norm(Ax_) << ", delta norm: " << (Ax_norm_old ? std::abs(Ax_norm - *Ax_norm_old) : 0.) << ",norm(z_us_): " << norm(z_us_) << ", eps: " << prm_.eps_abs + prm_.eps_rel * std::max<Scalar>(Ax_norm, norm(z_us_)) << std::endl;
+    //if (norm(Ax_) <= prm_.eps_abs + prm_.eps_rel * std::max<Scalar>(Ax_norm, norm(z_us_)) or (Ax_norm_old and std::abs(Ax_norm - *Ax_norm_old) < 1e-6)) {
+    if (norm(Ax_) <= prm_.eps_abs + prm_.eps_rel * std::max<Scalar>(Ax_norm, norm(z_us_)))
+    {
       // primal succeeded, check dual
       Px_.noalias()           = pbm.P * x_us_;
       Aty_.noalias()          = pbm.A.transpose() * y_us_;
       const Scalar dual_scale = std::max<Scalar>({norm(Px_), norm(pbm.q), norm(Aty_)});
       Px_ += pbm.q + Aty_;
+      //std::cout << "dual check, norm(Px_): " << norm(Px_) << ", eps: " << prm_.eps_abs + prm_.eps_rel * dual_scale << std::endl;
       if (norm(Px_) <= prm_.eps_abs + prm_.eps_rel * dual_scale) { return QPSolutionStatus::Optimal; }
     }
+    //Ax_norm_old = Ax_norm;
 
     // PRIMAL INFEASIBILITY
 
