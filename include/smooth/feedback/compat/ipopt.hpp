@@ -8,9 +8,9 @@
  */
 
 #define HAVE_CSTDDEF
-#include <IpIpoptApplication.hpp>
-#include <IpIpoptData.hpp>
-#include <IpTNLP.hpp>
+#include <coin-or/IpIpoptApplication.hpp>
+#include <coin-or/IpIpoptData.hpp>
+#include <coin-or/IpTNLP.hpp>
 #undef HAVE_CSTDDEF
 
 #include "smooth/feedback/nlp.hpp"

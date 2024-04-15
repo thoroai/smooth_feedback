@@ -6,6 +6,7 @@
 
 #include <smooth/concepts/lie_group.hpp>
 #include <smooth/lie_sparse.hpp>
+#include <smooth/feedback/compat/ipopt.hpp>
 
 #include "ocp_to_qp.hpp"
 #include "qp_solver.hpp"
