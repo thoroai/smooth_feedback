@@ -8,7 +8,6 @@ option(BUILD_BENCHMARKS "Build the benchmarks." OFF)
 option(BUILD_EXAMPLES "Build the examples." OFF)
 option(BUILD_TESTS "Build tests." OFF)
 
-find_package(Boost REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 # ---------------------------------------------------------------------------------------
@@ -18,9 +17,10 @@ find_package(PkgConfig REQUIRED)
 add_library(smooth_feedback INTERFACE)
 target_include_directories(
   smooth_feedback INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                     $<INSTALL_INTERFACE:include>
+                            $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(smooth_feedback INTERFACE Boost::headers smooth)
+target_link_libraries(smooth_feedback INTERFACE Boost::boost smooth::smooth)
+add_library(smooth::smooth_feedback ALIAS smooth_feedback)
 
 # ---------------------------------------------------------------------------------------
 # INSTALLATION
