@@ -612,6 +612,18 @@ public:
   }
 
   /**
+   * @brief Update MPC weights.
+   * @brief Useful to allow changing MPC weights for different operating conditions without 
+   * losing member variable state such that warmstart_ due to object recreation or reassignment.
+   */
+  inline void set_weights(const MPCWeights<X, U> & weights)
+  {
+    ocp_.g.R       = weights.R;
+    ocp_.g.Q       = weights.Q;
+    ocp_.theta.Qtf = weights.Qtf;
+  }
+
+  /**
    * @brief Reset initial guess for next iteration to zero.
    */
   inline void reset_warmstart() { warmstart_ = {}; }
