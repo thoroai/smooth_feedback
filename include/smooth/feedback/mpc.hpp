@@ -621,6 +621,11 @@ public:
     ocp_.g.R       = weights.R;
     ocp_.g.Q       = weights.Q;
     ocp_.theta.Qtf = weights.Qtf;
+
+    // Run ocp_to_qp steps from constructor of smooth::feedback::MPC to ensure new weights are updated in the QP problem as well.
+    detail::ocp_to_qp_allocate<DT>(qp_, work_, ocp_, mesh_);
+    ocp_to_qp_update<diff::Type::Analytic>(qp_, work_, ocp_, mesh_, prm_.tf, *xdes_, *udes_);
+    qp_solver_.analyze(qp_);    
   }
 
   /**
