@@ -612,6 +612,24 @@ public:
   }
 
   /**
+   * @brief Update MPC weights.
+   * @brief Useful to allow changing MPC weights for different operating conditions without 
+   * losing member variable state such that warmstart_ due to object recreation or reassignment.
+   */
+  inline void set_weights(const MPCWeights<X, U> & weights)
+  {
+    ocp_.g.R       = weights.R;
+    ocp_.g.Q       = weights.Q;
+    ocp_.theta.Qtf = weights.Qtf;
+
+    // Run ocp_to_qp steps from constructor of smooth::feedback::MPC to ensure new weights are
+    // updated in the QP problem as well.
+    detail::ocp_to_qp_allocate<DT>(qp_, work_, ocp_, mesh_);
+    ocp_to_qp_update<diff::Type::Analytic>(qp_, work_, ocp_, mesh_, prm_.tf, *xdes_, *udes_);
+    qp_solver_.analyze(qp_);    
+  }
+
+  /**
    * @brief Reset initial guess for next iteration to zero.
    */
   inline void reset_warmstart() { warmstart_ = {}; }
