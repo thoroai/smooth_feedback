@@ -376,7 +376,9 @@ public:
       if (K == k) {
         static constexpr auto nw_ext_s = detail::lgr_plus_one<K>();
         static constexpr auto B_ext_s  = lagrange_basis<K>(nw_ext_s.first);
-        static constexpr auto D_ext_s =
+        // BR: Constrexpr was removed since it isn't a constexpr expression
+        // static constexpr auto D_ext_s =
+        static const auto D_ext_s =
           polynomial_basis_derivatives<K, K + 1>(B_ext_s, nw_ext_s.first).template block<K + 1, K>(0, 0);
         // Eigen maps don't have copy constructors so use placement new
         new (&ret) MatMap(D_ext_s[0].data(), k + 1, k);
