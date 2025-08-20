@@ -15,6 +15,8 @@
 #include "ocp.hpp"
 #include "qp.hpp"
 
+#include <iostream> 
+
 namespace smooth::feedback {
 
 // \cond
@@ -41,6 +43,8 @@ template<diff::Type DT = diff::Type::Default>
 void ocp_to_qp_allocate(
   QuadraticProgramSparse<double> & qp, OcpToQpWorkmemory & work, OCPType auto & ocp, const MeshType auto & mesh)
 {
+  constexpr auto debug_print = true;
+
   using ocp_t = typename std::decay_t<decltype(ocp)>;
 
   using X = typename ocp_t::X;
@@ -78,6 +82,17 @@ void ocp_to_qp_allocate(
   qp.l.setZero(Ncon);
   qp.u.setZero(Ncon);
 
+  if(debug_print)
+  {
+    std::cout << "ocp_to_qp_allocate()" << std::endl;
+    std::cout << "N: " << N << std::endl;
+    std::cout << "Nx, Nu: " << Nx << ", " << Nu << std::endl;
+    std::cout << "xvar_L, uvar_L: " << xvar_L << ", " << uvar_L << std::endl;
+    std::cout << "dcon_L, crcon_L, cecon_L: " << dcon_L << ", " << crcon_L << ", " << cecon_L << std::endl;
+    std::cout << "dcon_B, crcon_B, cecon_B: " << dcon_B << ", " << crcon_B << ", " << cecon_B << std::endl;
+    std::cout << "Nvar, Ncon: " << Nvar << ", " << Ncon << std::endl;
+  }
+
   // sparsity pattern of A (row-major)
   Eigen::VectorXi A_pattern = Eigen::VectorXi::Zero(Ncon);
   for (auto ival = 0ul, I0 = 0ul; ival < mesh.N_ivals(); I0 += mesh.N_colloc_ival(ival), ++ival) {
@@ -99,6 +114,21 @@ void ocp_to_qp_allocate(
   }
   qp.P.reserve(P_pattern);
 
+  if(debug_print)
+  {
+    // std::cout << "A pattern: " << std::endl;
+    // std::cout << A_pattern << std::endl;
+    std::cout << "qp.A: " << std::endl;
+    // std::cout << qp.A << std::endl;
+    std::cout << qp.A.rows() << ", " << qp.A.cols() << std::endl;
+
+    // std::cout << "P pattern: " << std::endl;
+    // std::cout << P_pattern << std::endl;
+    std::cout << "qp.P: " << std::endl;
+    // std::cout << qp.P << std::endl;
+    std::cout << qp.P.rows() << ", " << qp.P.cols() << std::endl;    
+  }
+
   // compute work stuff once to allocate pattern
   const double tf = 1.;
   auto xslin      = mesh.all_nodes() | transform([&](double) { return Identity<X>(); });
@@ -107,6 +137,24 @@ void ocp_to_qp_allocate(
   work.int_out.lambda.setConstant(1, 1);
   mesh_eval<1, DT>(work.cr_out, mesh, ocp.cr, 0, tf, xslin, uslin);       // allocates work.cr_out
   mesh_integrate<2, DT>(work.int_out, mesh, ocp.g, 0, tf, xslin, uslin);  // allocates work.int_out
+
+  if(debug_print)
+  {
+    std::cout << "work.int_out.lambda: " << std::endl;
+    std::cout << work.int_out.lambda << std::endl;
+
+    std::cout << "work.cr_out: " << work.cr_out.allocated << std::endl;
+    // std::cout << work.cr_out.F << std::endl;
+    // std::cout << "..." << std::endl;
+    // std::cout << work.cr_out.dF << std::endl;
+
+    std::cout << "work.int_out: " << work.int_out.allocated << std::endl;
+    // std::cout << work.int_out.F << std::endl;
+    // std::cout << "..." << std::endl;
+    // std::cout << work.int_out.dF << std::endl;
+    // std::cout << "..." << std::endl;
+    // std::cout << work.int_out.d2F << std::endl; // How does this have non-zero elements but F and dF are zero??
+  }
 
   work.cr_out.dF.makeCompressed();
   work.int_out.dF.makeCompressed();
