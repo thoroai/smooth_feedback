@@ -20,6 +20,8 @@
 #include "smooth/feedback/traits.hpp"
 #include "smooth/feedback/utils/sparse.hpp"
 
+#include <iostream>
+
 namespace smooth::feedback {
 
 using smooth::utils::zip;
@@ -92,7 +94,15 @@ public:
    */
   inline Mesh(const std::size_t n, const std::size_t k = Kmin)
   {
+    constexpr auto debug_print = true;
+
     assert(Kmin <= k && k <= Kmax + 1);
+
+    if(debug_print)
+    {
+      std::cout << "Mesh c'tor template: " << Kmin << ", " << Kmax << std::endl;
+      std::cout << "Mesh c'tor: " << n << ", " << k << std::endl;
+    }
 
     if (n < 2) {
       intervals_.emplace_back(k, 0.);
@@ -100,6 +110,12 @@ public:
       const double dx = 1. / static_cast<double>(n);
       intervals_.reserve(n);
       for (std::size_t i = 0; i < n; ++i) { intervals_.emplace_back(k, static_cast<double>(i) * dx); }
+
+      if(debug_print)
+      {
+        std::cout << "Mesh c'tor dx: " << dx << std::endl;
+        std::cout << "Mesh c'tor intervals size: " << intervals_.size() << std::endl;
+      }
     }
   }
 
