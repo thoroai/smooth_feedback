@@ -223,6 +223,8 @@ public:
    */
   inline auto interval_nodes(std::size_t i) const
   {
+    constexpr auto debug_print = true;
+
     const std::size_t k = intervals_[i].K;
 
     assert(Kmin <= k && k <= Kmax + 1);
@@ -237,6 +239,15 @@ public:
         sp = std::span<const double>(nw_ext_s.first.data(), k + 1);
       }
     });
+
+    if(debug_print)
+    {
+      std::cout << "span: " << std::endl;
+      for (double s : std::views::all(sp))
+        std::cout << s << " ";
+      std::cout << std::endl;
+    }
+
 
     const double tau0 = intervals_[i].tau0;
     const double tauf = i + 1 < intervals_.size() ? intervals_[i + 1].tau0 : 1.;
@@ -254,6 +265,8 @@ public:
    */
   inline auto all_nodes() const
   {
+    constexpr auto debug_print = true;
+
     const auto n_ivals = N_ivals();
     auto all_views     = iota(0u, n_ivals) | transform([this, n_ivals = n_ivals](auto i) {
                        const auto n_ival = N_colloc_ival(i);
@@ -271,6 +284,9 @@ public:
             nodes_join.push_back(datum);
         }
     }
+
+    if (debug_print)
+      std::cout << "mesh all_nodes size: " << nodes_join.size() << std::endl;
 
     return std::views::all(nodes_join);
   }
