@@ -223,7 +223,7 @@ public:
    */
   inline auto interval_nodes(std::size_t i) const
   {
-    constexpr auto debug_print = true;
+    constexpr auto debug_print = false;
 
     const std::size_t k = intervals_[i].K;
 
