@@ -129,6 +129,18 @@ void ocp_to_qp_allocate(
     std::cout << qp.P.rows() << ", " << qp.P.cols() << std::endl;    
   }
 
+  if(debug_print)
+  {
+    std::cout << "mesh.all_nodes(): " << std::endl;
+    size_t ctr = 0;
+    for (double t : std::views::all(mesh.all_nodes()))
+    {
+        std::cout << t << " ";
+        ++ctr;
+    }
+    std::cout << "ctr: " << ctr << std::endl;
+  }
+
   // compute work stuff once to allocate pattern
   const double tf = 1.;
   auto xslin      = mesh.all_nodes() | transform([&](double) { return Identity<X>(); });
@@ -172,6 +184,8 @@ void ocp_to_qp_update_cost(
   auto && xl_fun,
   auto && ul_fun)
 {
+  constexpr auto debug_print = true;
+
   using ocp_t = typename std::decay_t<decltype(ocp)>;
   using X     = typename ocp_t::X;
 
@@ -208,6 +222,18 @@ void ocp_to_qp_update_cost(
 
   auto xslin = mesh.all_nodes() | transform([&](double t) { return xl_fun(t0 + (tf - t0) * t); });
   auto uslin = mesh.all_nodes() | transform([&](double t) { return ul_fun(t0 + (tf - t0) * t); });
+
+  if(debug_print)
+  {
+    std::cout << "mesh.all_nodes() time: " << std::endl;
+    size_t ctr = 0;
+    for (double t : std::views::all(mesh.all_nodes()))
+    {
+        std::cout << (t0 + (tf - t0) * t) << " ";
+        ++ctr;
+    }
+    std::cout << "ctr: " << ctr << std::endl;
+  }
 
   const Eigen::Vector<double, 1> ql{1.};
 
