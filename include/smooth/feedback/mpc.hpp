@@ -434,9 +434,17 @@ public:
         },
         prm_{std::move(prm)}, qp_solver_{prm_.qp}
   {
+    bool debug_print = true;
+
+    if(debug_print)
+      std::cout << "--- RAKRAK MPC C'TOR [begin] ---" << std::endl;
+
     detail::ocp_to_qp_allocate<DT>(qp_, work_, ocp_, mesh_);
     ocp_to_qp_update<diff::Type::Analytic>(qp_, work_, ocp_, mesh_, prm_.tf, *xdes_, *udes_);
     qp_solver_.analyze(qp_);
+
+    if(debug_print)
+      std::cout << "--- RAKRAK MPC C'TOR [end] ---" << std::endl;
   }
   /// @brief Same as above but for lvalues
   inline MPC(
@@ -477,6 +485,8 @@ public:
     std::optional<std::reference_wrapper<std::vector<U>>> u_traj = std::nullopt,
     std::optional<std::reference_wrapper<std::vector<X>>> x_traj = std::nullopt)
   {
+    bool debug_print = true;
+
     static constexpr auto Nx = Dof<X>;
     static constexpr auto Nu = Dof<U>;
 
@@ -493,6 +503,9 @@ public:
     ocp_.cr.t0        = t;
     ocp_.ce.x0_fix    = x;
 
+    if(debug_print)
+      std::cout << "--- RAKRAK MPC operator [begin] ---" << std::endl;
+
     // transcribe to QP
     ocp_to_qp_update_dyn<diff::Type::Analytic>(qp_, work_, ocp_, mesh_, prm_.tf, *xdes_, *udes_);
     if constexpr (requires(CR & crvar, T tvar) { crvar.set_time(tvar); }) {
@@ -505,6 +518,9 @@ public:
 
     // solve QP
     const auto & sol = qp_solver_.solve(qp_, warmstart_);
+
+    if(debug_print)
+      std::cout << "--- RAKRAK MPC operator [end] ---" << std::endl;
 
     // output solution trajectories
     if (u_traj.has_value()) {
@@ -530,6 +546,9 @@ public:
       }
       // clang-format on
     }
+
+    if(debug_print)
+      std::cout << "--- RAKRAK MPC operator [end end] ---" << std::endl;
 
     return {rplus((*udes_)(0), sol.primal.template segment<Nu>(uvar_B)), sol.code};
   }
