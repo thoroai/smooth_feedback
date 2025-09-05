@@ -223,6 +223,28 @@ void ocp_to_qp_update_cost(
   auto xslin = mesh.all_nodes() | transform([&](double t) { return xl_fun(t0 + (tf - t0) * t); });
   auto uslin = mesh.all_nodes() | transform([&](double t) { return ul_fun(t0 + (tf - t0) * t); });
 
+  // if constexpr (std::is_same<X, XRd>::value)
+  if constexpr (std::is_same<X, smooth::SE2d>::value)
+  {
+    auto xslin_subset = xslin;
+    auto uslin_subset = uslin;
+
+    // const auto num_pts = 3;
+    // auto xslin_subset = std::vector<smooth::SE2d> (xslin.begin(), xslin.begin()+num_pts);
+    // xslin_subset.insert(xslin_subset.end(), xslin.end()-num_pts, xslin.end());
+    // auto uslin_subset = std::vector<Eigen::Vector2d> (uslin.begin(), uslin.begin()+num_pts);
+    // uslin_subset.insert(uslin_subset.end(), uslin.end()-num_pts, uslin.end());
+
+    for(auto x : xslin_subset)
+    {
+      std::cout << "mesh_pts_subset xslin [update cost]: " << x.r2().x() << ", " << x.r2().y() << " | " << x.so2().angle() << std::endl;
+    }
+    for(auto u : uslin_subset)
+    {
+      std::cout << "mesh_pts_subset uslin [update cost]: " << u.x() << ", " << u.y() << std::endl;
+    }    
+  }
+
   if(debug_print)
   {
     std::cout << "mesh.all_nodes() time: " << std::endl;
