@@ -220,7 +220,16 @@ void ocp_to_qp_update_cost(
   const X xl0 = xl_fun(0.);
   const X xlf = xl_fun(tf);
 
-  auto xslin = mesh.all_nodes() | transform([&](double t) { return xl_fun(t0 + (tf - t0) * t); });
+  // auto xslin = mesh.all_nodes() | transform([&](double t) { return xl_fun(t0 + (tf - t0) * t); });
+  auto xslin = mesh.all_nodes() | transform([&](double t) { 
+    std::cout << "mesh t: " << (t0 + (tf - t0) * t) << std::endl; 
+    auto x = xl_fun(t0 + (tf - t0) * t); 
+
+    if constexpr (std::is_same<X, smooth::SE2d>::value)
+      std::cout << "mesh_pts_subset xslin [update cost]: " << x.r2().x() << ", " << x.r2().y() << " | " << x.so2().angle() << std::endl;
+    
+    return x; 
+  });
   auto uslin = mesh.all_nodes() | transform([&](double t) { return ul_fun(t0 + (tf - t0) * t); });
 
   // if constexpr (std::is_same<X, XRd>::value)
