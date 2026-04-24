@@ -92,7 +92,8 @@ struct MPCObj
   {
     assert(q(0) == 1.);
     assert(xf_des.isApprox(xf, 1e-4));
-    if constexpr (false) { // Might be disabled because this does not get used in the QP matrices constructed in ocp_to_qp.hpp except for linearization at t0 and tf
+    // if constexpr (false) { // Might be disabled because this does not get used in the QP matrices constructed in ocp_to_qp.hpp except for linearization at t0 and tf
+    if constexpr (true) { // Might be disabled because this does not get used in the QP matrices constructed in ocp_to_qp.hpp except for linearization at t0 and tf
       const auto e = rminus(xf, xf_des);
       return 0.5 * e.dot(Qtf * e) + q(0);
     } else {
@@ -193,7 +194,8 @@ struct MPCIntegrand
   {
     assert((*xdes)(t_rel).isApprox(x, 1e-4));
     assert((*udes)(t_rel).isApprox(u, 1e-4));
-    if constexpr (false) { // Might be disabled because this does not get used in the QP matrices constructed in ocp_to_qp.hpp except for linearization at t0 and tf
+    // if constexpr (false) { // Might be disabled because this does not get used in the QP matrices constructed in ocp_to_qp.hpp except for linearization at t0 and tf
+    if constexpr (true) { // Might be disabled because this does not get used in the QP matrices constructed in ocp_to_qp.hpp except for linearization at t0 and tf
       const auto ex = rminus(x, (*xdes)(t_rel));
       const auto eu = rminus(u, (*udes)(t_rel));
       return Eigen::Vector<double, 1>{0.5 * ex.dot(Q * ex) + 0.5 * eu.dot(R * eu)};

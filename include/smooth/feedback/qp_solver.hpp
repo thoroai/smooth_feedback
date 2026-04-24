@@ -360,6 +360,7 @@ public:
 
     for (auto i = 0u; i != m; ++i) {
       if (pbm.l(i) == inf || pbm.u(i) == -inf || pbm.u(i) - pbm.l(i) < Scalar(0.)) {
+        std::cout << ">>>>>>>> " << __func__ << ": " << __LINE__ << std::endl;
         ret_code = QPSolutionStatus::PrimalInfeasible;  // feasible set trivially empty
       }
 
@@ -593,6 +594,12 @@ protected:
       if (norm(Px_) <= prm_.eps_abs + prm_.eps_rel * dual_scale) { return QPSolutionStatus::Optimal; }
     }
 
+    // std::cout << "-----" << std::endl;
+    // std::cout << "A: \n" << pbm.A << std::endl;
+    // std::cout << "l: \n" << pbm.l << std::endl;
+    // std::cout << "u: \n" << pbm.u << std::endl;
+    // std::cout << "-----" << std::endl;
+
     // PRIMAL INFEASIBILITY
 
     Aty_.noalias()        = pbm.A.transpose() * dy_us_;  // NOTE new value A' * dy
@@ -603,6 +610,7 @@ protected:
       if (pbm.u(i) != inf) {
         u_dyp_plus_l_dyn += pbm.u(i) * std::max<Scalar>(Scalar(0), dy_us_(i));
       } else if (dy_us_(i) > prm_.eps_primal_inf * Edy_norm) {
+        std::cout << ">> no cert 1" << std::endl;
         // contributes +inf to sum --> no certificate
         u_dyp_plus_l_dyn = inf;
         break;
@@ -611,12 +619,14 @@ protected:
         u_dyp_plus_l_dyn += pbm.l(i) * std::min<Scalar>(Scalar(0), dy_us_(i));
       } else if (dy_us_(i) < -prm_.eps_primal_inf * Edy_norm) {
         // contributes +inf to sum --> no certificate
+        std::cout << ">> no cert 2" << std::endl;
         u_dyp_plus_l_dyn = inf;
         break;
       }
     }
 
     if (std::max<Scalar>(norm(Aty_), u_dyp_plus_l_dyn) < prm_.eps_primal_inf * Edy_norm) {
+      std::cout << ">>>>>>>> " << __func__ << ": " << __LINE__ << std::endl;
       return QPSolutionStatus::PrimalInfeasible;
     }
 

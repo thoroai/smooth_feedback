@@ -161,6 +161,8 @@ void ocp_to_qp_update_cost(
   auto xslin = mesh.all_nodes() | transform([&](double t) { return xl_fun(t0 + (tf - t0) * t); });
   auto uslin = mesh.all_nodes() | transform([&](double t) { return ul_fun(t0 + (tf - t0) * t); });
 
+  // auto ts = mesh.all_nodes() | transform([&](double t) { return (t0 + (tf - t0) * t); });
+
   const Eigen::Vector<double, 1> ql{1.};
 
   ///////////////////////
@@ -168,12 +170,63 @@ void ocp_to_qp_update_cost(
   ///////////////////////
 
   const auto & [th, dth, d2th] = diff::dr<2, DT>(ocp.theta, wrt(tf, xl0, xlf, ql));
+  // const auto & [ths, dths, d2ths] = diff::dr<2, DT>(ocp.theta, wrt(ts));
+
+  // for (auto ival = 0ul, M = 0ul; ival < mesh.N_ivals(); M += mesh.N_colloc_ival(ival), ++ival) {
+  //   const auto Ki = mesh.N_colloc_ival(ival);  // number of nodes in interval
+
+  //   const auto [alpha, Dus] = mesh.interval_diffmat_unscaled(ival);
+
+  //   for (const auto & [i, tau_i] : zip(iota(0u, Ki), mesh.interval_nodes(ival))) {
+  //   const auto t_i             = t0 + (tf - t0) * tau_i;             // unscaled time
+  //   const auto th_i            = ocp.theta(t_i);                        // u-lin
+  //   std::cout << "th_i) " << i << ", " << th_i << std::endl;
+  //   }
+  // }
+
+  // std::cout << "th: \n" << th << std::endl;
+  // std::cout << "dth: \n" << dth << std::endl;
+  // std::cout << "d2th: \n" << d2th << std::endl;
+  // std::cout << "---" << std::endl;
+  // // std::cout << "ths: \n" << ths << std::endl;
+  // // std::cout << "dths: \n" << dths << std::endl;
+  // // std::cout << "d2ths: \n" << d2ths << std::endl;
+  // exit(0);
 
   const Eigen::Vector<double, Nx> qo_x0 = dth.middleCols(1, Nx).transpose();
   const Eigen::Vector<double, Nx> qo_xf = dth.middleCols(1 + Nx, Nx).transpose();
   const Eigen::Vector<double, Nq> qo_q  = dth.middleCols(1 + 2 * Nx, Nq).transpose();
 
   mesh_integrate<2, DT>(work.int_out, mesh, ocp.g, 0, tf, xslin, uslin);
+
+  // std::cout << "ocp.g: \n" << ocp.g << std::endl;
+
+
+  for (auto ival = 0ul, M = 0ul; ival < mesh.N_ivals(); M += mesh.N_colloc_ival(ival), ++ival) {
+    const auto Ki = mesh.N_colloc_ival(ival);  // number of nodes in interval
+
+    // const auto [alpha, Dus] = mesh.interval_diffmat_unscaled(ival);
+
+    // in each interval the collocation constraint is
+    // [A0 x0 ... Ak-1 xk-1 0]  + [B0 u0 ... Bk-1 uk-1] + [E0 ... Ek-1] = alpha * X Dus
+
+    for (const auto & [i, tau_i] : zip(iota(0u, Ki), mesh.interval_nodes(ival))) {
+      const auto t_i             = t0 + (tf - t0) * tau_i;             // unscaled time
+      const auto & [xl_i, dxl_i] = diff::dr<1, DT>(xl_fun, wrt(t_i));  // x-lin
+      const auto ul_i            = ul_fun(t_i);                        // u-lin
+
+      // linearize dynamics and insert new constraint A xi + B ui + E = [x0 ... XNi] di
+
+      // const auto & [f_i, df_i] = diff::dr<1, DT>(ocp.f, wrt(t_i, xl_i, ul_i));
+      const auto & [g_i, dg_i] = diff::dr<1, DT>(ocp.g, wrt(t_i, xl_i, ul_i));
+      std::cout << "g: " << i << ") " << t_i << ") " << g_i << " | " << xl_i << " | " << ul_i.transpose() << " || " << xl_fun(t_i) << " | " << ul_fun(t_i).transpose() << std::endl;
+
+    }
+
+  }
+
+
+
 
   // clang-format off
   block_add(qp.P, 0, 0, work.int_out.d2F.block(2, 2, xvar_L + uvar_L, xvar_L + uvar_L), qo_q.x(), true);
