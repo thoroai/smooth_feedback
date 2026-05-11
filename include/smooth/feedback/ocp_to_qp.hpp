@@ -201,29 +201,31 @@ void ocp_to_qp_update_cost(
 
   // std::cout << "ocp.g: \n" << ocp.g << std::endl;
 
+  //
+  // RAKRAK:
+  //
+  // for (auto ival = 0ul, M = 0ul; ival < mesh.N_ivals(); M += mesh.N_colloc_ival(ival), ++ival) {
+  //   const auto Ki = mesh.N_colloc_ival(ival);  // number of nodes in interval
 
-  for (auto ival = 0ul, M = 0ul; ival < mesh.N_ivals(); M += mesh.N_colloc_ival(ival), ++ival) {
-    const auto Ki = mesh.N_colloc_ival(ival);  // number of nodes in interval
+  //   // const auto [alpha, Dus] = mesh.interval_diffmat_unscaled(ival);
 
-    // const auto [alpha, Dus] = mesh.interval_diffmat_unscaled(ival);
+  //   // in each interval the collocation constraint is
+  //   // [A0 x0 ... Ak-1 xk-1 0]  + [B0 u0 ... Bk-1 uk-1] + [E0 ... Ek-1] = alpha * X Dus
 
-    // in each interval the collocation constraint is
-    // [A0 x0 ... Ak-1 xk-1 0]  + [B0 u0 ... Bk-1 uk-1] + [E0 ... Ek-1] = alpha * X Dus
+  //   for (const auto & [i, tau_i] : zip(iota(0u, Ki), mesh.interval_nodes(ival))) {
+  //     const auto t_i             = t0 + (tf - t0) * tau_i;             // unscaled time
+  //     const auto & [xl_i, dxl_i] = diff::dr<1, DT>(xl_fun, wrt(t_i));  // x-lin
+  //     const auto ul_i            = ul_fun(t_i);                        // u-lin
 
-    for (const auto & [i, tau_i] : zip(iota(0u, Ki), mesh.interval_nodes(ival))) {
-      const auto t_i             = t0 + (tf - t0) * tau_i;             // unscaled time
-      const auto & [xl_i, dxl_i] = diff::dr<1, DT>(xl_fun, wrt(t_i));  // x-lin
-      const auto ul_i            = ul_fun(t_i);                        // u-lin
+  //     // linearize dynamics and insert new constraint A xi + B ui + E = [x0 ... XNi] di
 
-      // linearize dynamics and insert new constraint A xi + B ui + E = [x0 ... XNi] di
+  //     // const auto & [f_i, df_i] = diff::dr<1, DT>(ocp.f, wrt(t_i, xl_i, ul_i));
+  //     const auto & [g_i, dg_i] = diff::dr<1, DT>(ocp.g, wrt(t_i, xl_i, ul_i));
+  //     std::cout << "g: " << i << ") " << t_i << ") " << g_i << " | " << xl_i << " | " << ul_i.transpose() << " || " << xl_fun(t_i) << " | " << ul_fun(t_i).transpose() << std::endl;
 
-      // const auto & [f_i, df_i] = diff::dr<1, DT>(ocp.f, wrt(t_i, xl_i, ul_i));
-      const auto & [g_i, dg_i] = diff::dr<1, DT>(ocp.g, wrt(t_i, xl_i, ul_i));
-      std::cout << "g: " << i << ") " << t_i << ") " << g_i << " | " << xl_i << " | " << ul_i.transpose() << " || " << xl_fun(t_i) << " | " << ul_fun(t_i).transpose() << std::endl;
+  //   }
 
-    }
-
-  }
+  // }
 
 
 
@@ -306,6 +308,10 @@ void ocp_to_qp_update_dyn(
       // linearize dynamics and insert new constraint A xi + B ui + E = [x0 ... XNi] di
 
       const auto & [f_i, df_i] = diff::dr<1, DT>(ocp.f, wrt(t_i, xl_i, ul_i));
+
+      // RAKRAK:
+      // const auto & [g_i, dg_i] = diff::dr<1, DT>(ocp.g, wrt(t_i, xl_i, ul_i));
+      // std::cout << "g (dyn): " << i << ") " << t_i << ") " << g_i << " | " << xl_i << " | " << ul_i.transpose() << " || " << xl_fun(t_i) << " | " << ul_fun(t_i).transpose() << std::endl;
 
       // clang-format off
       block_add(qp.A, dcon_B + (M + i) * Nx, xvar_B + (M + i) * Nx, df_i.template middleCols<Nx>(1), tf);        // A
